@@ -10,8 +10,9 @@ To initalize contexts, first create a manager or use the shared manager.
 JPToggleManager *toggleManager = [JPToggleManager new];
 JPToggleManager *toggleManager = [JPToggleManager sharedManager];
 ```
+I suggest using the sharedManager.
 
-Then set the supported contexts.  These are unique keys for your app.  The order matters.  The first context has highest priority, the last has least.
+Next, set the supported contexts.  These are unique keys for your app.  The order of these keys matters.  The first context has highest priority, the last has least.
 ```
 [JPToggleManager sharedManager].contexts = [NSMutableArray new];
 
