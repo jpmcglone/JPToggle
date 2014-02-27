@@ -6,6 +6,7 @@
 #import "JPToggleManager.h"
 
 @implementation JPToggleManager {
+    NSMutableArray *_contexts;
     NSMutableDictionary *_info;
 }
 
@@ -18,24 +19,36 @@
     return sharedManager;
 }
 
-- (void)setContexts:(NSMutableArray *)contexts {
-    _info = [NSMutableDictionary new];
-    _contexts = contexts;
-    [_contexts enumerateObjectsUsingBlock:^(NSString *context, NSUInteger idx, BOOL *stop) {
-        [_info setObject:[NSMutableDictionary new] forKey:context];
-    }];
+- (id)init {
+    self = [super init];
+    if (self) {
+        _contexts = [NSMutableArray new];
+        _info = [NSMutableDictionary new];
+    }
+    return self;
 }
 
 - (void)addContext:(NSString *)context {
     [_contexts addObject:context];
-    if (_info == nil) _info = [NSMutableDictionary new];
-    if (!_info[context]) [_info setValue:[NSMutableDictionary new] forKey:context];
+    if (!_info[context]) _info[context] = [NSMutableDictionary new];
     else NSLog(@"Context %@ already exists, ignoring add.", context);
+}
+
+- (void)addContexts:(NSArray *)contexts {
+    [contexts enumerateObjectsUsingBlock:^(NSString *context, NSUInteger idx, BOOL *stop) {
+        [self addContext:context];
+    }];
 }
 
 - (void)removeContext:(NSString *)context {
     if (_info[context]) [_info removeObjectForKey:context];
     else NSLog(@"Context %@ doesn't exist, ignoring remove.", context);
+}
+
+- (void)removeContexts:(NSArray *)contexts {
+    [contexts enumerateObjectsUsingBlock:^(NSString *context, NSUInteger idx, BOOL *stop) {
+        [self removeContext:context];
+    }];
 }
 
 - (BOOL)toggleForFeature:(NSString *)feature {
@@ -55,7 +68,7 @@
 }
 
 - (void)setToggle:(BOOL)toggle forFeature:(NSString *)feature inContext:(NSString *)context {
-    [[_info objectForKey:context] setObject:@(toggle) forKey:feature];
+    _info[context][feature] = @(toggle);
 }
 
 - (void)setToggle:(BOOL)toggle forFeature:(NSString *)feature inContexts:(NSArray *)contexts {

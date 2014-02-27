@@ -6,12 +6,16 @@
 #import <Foundation/Foundation.h>
 
 @interface JPToggleManager : NSObject
-@property (nonatomic, strong) NSMutableArray *contexts;
+@property (nonatomic, readonly) NSMutableArray *contexts;
 
 + (JPToggleManager *)sharedManager;
 
 - (void)addContext:(NSString *)context;
+- (void)addContexts:(NSArray *)contexts;
+
 - (void)removeContext:(NSString *)context;
+- (void)removeContexts:(NSArray *)contexts;
+
 - (BOOL)toggleForFeature:(NSString *)feature;
 - (void)setToggle:(BOOL)toggle forFeature:(NSString *)feature inContext:(NSString *)context;
 - (void)setToggle:(BOOL)toggle forFeature:(NSString *)feature inContexts:(NSArray *)contexts;

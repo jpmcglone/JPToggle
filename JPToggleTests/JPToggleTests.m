@@ -28,27 +28,34 @@
 }
 
 - (void)testToggles {
-    [JPToggleManager sharedManager].contexts = [@[@"DEBUG", @"ADHOC", @"DEMO", @"SPECIAL"] mutableCopy];
+    JPToggleManager *toggleManager = [JPToggleManager sharedManager];
+
+    [toggleManager addContexts:@[@"DEBUG", @"ADHOC", @"DEMO", @"SPECIAL"]];
+
+    [toggleManager setToggle:YES forFeature:@"Feature1" inContext:@"DEBUG"];
+    [toggleManager setToggle:YES forFeature:@"Feature2" inContext:@"NANCONTEXT"];
+    [toggleManager setToggle:YES forFeature:@"Feature3" inContext:@"ADHOC"];
+    [toggleManager setToggle:NO forFeature:@"Feature4" inContext:@"ADHOC"];
     
-    [[JPToggleManager sharedManager] setToggle:YES forFeature:@"Feature1" inContext:@"DEBUG"];
-    [[JPToggleManager sharedManager] setToggle:YES forFeature:@"Feature2" inContext:@"NANCONTEXT"];
-    [[JPToggleManager sharedManager] setToggle:YES forFeature:@"Feature3" inContext:@"ADHOC"];
-    [[JPToggleManager sharedManager] setToggle:NO forFeature:@"Feature4" inContext:@"ADHOC"];
+    XCTAssertTrue([toggleManager toggleForFeature:@"Feature1"]);
+    XCTAssertFalse([toggleManager toggleForFeature:@"Feature2"]);
+    XCTAssertTrue([toggleManager toggleForFeature:@"Feature3"]);
+    XCTAssertFalse([toggleManager toggleForFeature:@"Feature4"]);
+    XCTAssertFalse([toggleManager toggleForFeature:@"FEATURENOEXIST"]);
+
+    [toggleManager removeContexts:@[@"DEBUG", @"ADHOC"]];
+    // These should now be false because I am no longer in the DEBUG or ADHOC context
+    XCTAssertFalse([toggleManager toggleForFeature:@"Feature1"]);
+    XCTAssertFalse([toggleManager toggleForFeature:@"Feature3"]);
+
+    [toggleManager addContext:@"FEATURENOEXIST"];
     
-    XCTAssertTrue([[JPToggleManager sharedManager] toggleForFeature:@"Feature1"]);
-    XCTAssertFalse([[JPToggleManager sharedManager] toggleForFeature:@"Feature2"]);
-    XCTAssertTrue([[JPToggleManager sharedManager] toggleForFeature:@"Feature3"]);
-    XCTAssertFalse([[JPToggleManager sharedManager] toggleForFeature:@"Feature4"]);
-    XCTAssertFalse([[JPToggleManager sharedManager] toggleForFeature:@"FEATURENOEXIST"]);
+    XCTAssertTrue([toggleManager.contexts containsObject:@"FEATURENOEXIST"]);
+    XCTAssertFalse([toggleManager toggleForFeature:@"FEATURENOEXIST"]);
     
-    [[JPToggleManager sharedManager] addContext:@"FEATURENOEXIST"];
+    [toggleManager setToggle:YES forFeature:@"Feature5" inContext:@"FEATURENOEXIST"];
     
-    XCTAssertTrue([[JPToggleManager sharedManager].contexts containsObject:@"FEATURENOEXIST"]);
-    XCTAssertFalse([[JPToggleManager sharedManager] toggleForFeature:@"FEATURENOEXIST"]);
-    
-    [[JPToggleManager sharedManager] setToggle:YES forFeature:@"Feature5" inContext:@"FEATURENOEXIST"];
-    
-    XCTAssertFalse([[JPToggleManager sharedManager] toggleForFeature:@"FEATURENOEXIST"]);
+    XCTAssertFalse([toggleManager toggleForFeature:@"FEATURENOEXIST"]);
 }
 
 @end
