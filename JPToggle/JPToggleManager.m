@@ -24,14 +24,23 @@
     if (self) {
         _contexts = [NSMutableArray new];
         _info = [NSMutableDictionary new];
+        _notificationCenter = [NSNotificationCenter new];
     }
     return self;
 }
 
 - (void)addContext:(NSString *)context {
-    [_contexts addObject:context];
-    if (!_info[context]) _info[context] = [NSMutableDictionary new];
-    else NSLog(@"Context %@ already exists, ignoring add.", context);
+    if (![_contexts containsObject:context]) {
+        [_contexts addObject:context];
+        if (!_info[context]) {
+            _info[context] = [NSMutableDictionary new];
+        }
+        [[_info[context] allKeys] enumerateObjectsUsingBlock:^(NSString *feature, NSUInteger idx, BOOL *stop) {
+            [self postNotificationForFeature:feature inContext:context];
+        }];
+    } else {
+        NSLog(@"Context %@ already exists, ignoring add.", context);
+    }
 }
 
 - (void)addContexts:(NSArray *)contexts {
@@ -41,8 +50,14 @@
 }
 
 - (void)removeContext:(NSString *)context {
-    if (_info[context]) [_info removeObjectForKey:context];
-    else NSLog(@"Context %@ doesn't exist, ignoring remove.", context);
+    if ([_contexts containsObject:context]) {
+        [_contexts removeObject:context];
+        [[_info[context] allKeys] enumerateObjectsUsingBlock:^(NSString *feature, NSUInteger idx, BOOL *stop) {
+            [self postNotificationForFeature:feature inContext:context];
+        }];
+    } else {
+       NSLog(@"Context %@ doesn't exist, ignoring remove.", context);
+    }
 }
 
 - (void)removeContexts:(NSArray *)contexts {
@@ -61,20 +76,28 @@
             *stop = YES;
         }
     }];
-    if (!found) {
-        NSLog(@"Didn't find feature %@ in any context.", feature);
-    }
     return toggle;
 }
 
 - (void)setToggle:(BOOL)toggle forFeature:(NSString *)feature inContext:(NSString *)context {
-    _info[context][feature] = @(toggle);
+    // Wrap the primitive for use with notification center and dictionary
+    NSNumber *toggleObject = @(toggle);
+    if (!_info[context]) {
+        _info[context] = [NSMutableDictionary new];
+    }
+    _info[context][feature] = toggleObject;
+    [self postNotificationForFeature:feature inContext:context];
 }
 
 - (void)setToggle:(BOOL)toggle forFeature:(NSString *)feature inContexts:(NSArray *)contexts {
     [contexts enumerateObjectsUsingBlock:^(NSString *context, NSUInteger idx, BOOL *stop) {
         [self setToggle:toggle forFeature:feature inContext:context];
     }];
+}
+
+- (void)postNotificationForFeature:(NSString *)feature inContext:(NSString *)context{
+    BOOL toggle = [_info[context][feature] boolValue] && [_contexts containsObject:context];
+    [_notificationCenter postNotificationName:feature object:@(toggle)];
 }
 
 @end

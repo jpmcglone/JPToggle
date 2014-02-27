@@ -7,6 +7,7 @@
 
 @interface JPToggleManager : NSObject
 @property (nonatomic, readonly) NSMutableArray *contexts;
+@property (nonatomic, readonly) NSNotificationCenter *notificationCenter;
 
 + (JPToggleManager *)sharedManager;
 
